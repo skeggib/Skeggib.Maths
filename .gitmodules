@@ -1,0 +1,3 @@
+[submodule "Skeggib.Cpptest"]
+	path = Skeggib.Cpptest
+	url = http://github.com/skeggib/Skeggib.Cpptest.git
