@@ -27,15 +27,15 @@ O_LIB=\
     src/Algebra/Matrix.o\
 
 O_CPPTEST=\
-	cpptest/collectoroutput.o\
-	cpptest/compileroutput.o\
-	cpptest/htmloutput.o\
-	cpptest/missing.o\
-	cpptest/source.o\
-	cpptest/suite.o\
-	cpptest/textoutput.o\
-	cpptest/time.o\
-	cpptest/utils.o\
+	Skeggib.Cpptest/src/collectoroutput.o\
+	Skeggib.Cpptest/src/compileroutput.o\
+	Skeggib.Cpptest/src/htmloutput.o\
+	Skeggib.Cpptest/src/missing.o\
+	Skeggib.Cpptest/src/source.o\
+	Skeggib.Cpptest/src/suite.o\
+	Skeggib.Cpptest/src/textoutput.o\
+	Skeggib.Cpptest/src/time.o\
+	Skeggib.Cpptest/src/utils.o\
 
 O_TEST=\
 	tests/tests.o\

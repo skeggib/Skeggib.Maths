@@ -1,4 +1,4 @@
-#include "Matrix.hpp"
+#include "../../headers/Algebra/Matrix.hpp"
 
 namespace Skeggib {
 namespace Maths {
