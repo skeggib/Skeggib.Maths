@@ -20,20 +20,24 @@ private:
 
 	void test_sizeConstructor();
 	void test_sizeValueConstructor();
-    void test_getValue();
-	void test_setValue();
-	void test_equals();
-	void test_assign();
-	void test_setLine();
-	void test_fromArray();
-    void test_plus_equal();
-    void test_minus_equal();
-    void test_multiply_equal();
-    void test_multiply_matrix();
+    void test_get();
+	void test_set();
+    void test_fromArray();
     void test_transpose();
-    void test_determinant();
+    void test_determinant(); // TODO
+    void test_setLine();
+    void test_swapLine(); // TODO
+    void test_multiplyLine(); // TODO
+    void test_addLine(); // TODO
+    void test_productMatrix();
+    void test_productScalar(); // TODO
     void test_substraction();
-    void test_product();
+	void test_equals();
+    void test_plus();
+    void test_minus();
+    void test_multiplyScalar();
+    void test_multiplyMatrix();
+    void test_assign();
 };
 
 } // namespace Algebra
