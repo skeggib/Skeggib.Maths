@@ -64,6 +64,13 @@ void Matrix<T>::set(unsigned int i, unsigned int j, const T& value) {
 }
 
 template <class T>
+T* Matrix<T>::getPtr(unsigned int i, unsigned int j) {
+    if (i > _height-1 || j > _width-1)
+        throw std::out_of_range("");
+    return _values + i * _width + j;
+}
+
+template <class T>
 void Matrix<T>::setLine(unsigned int i, T array[]) {
     T* pThis = _values + _width * i;
     T* pArray = array;

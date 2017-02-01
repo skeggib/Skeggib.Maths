@@ -9,6 +9,7 @@ RealMatrixTest::RealMatrixTest() {
     TEST_ADD(RealMatrixTest::test_sizeValueConstructor);
     TEST_ADD(RealMatrixTest::test_get);
     TEST_ADD(RealMatrixTest::test_set);
+    TEST_ADD(RealMatrixTest::test_getPtr);
     TEST_ADD(RealMatrixTest::test_fromArray);
     TEST_ADD(RealMatrixTest::test_transpose);
     TEST_ADD(RealMatrixTest::test_determinant);
@@ -44,12 +45,12 @@ void RealMatrixTest::test_sizeValueConstructor() {
     double value = 4;
     RealMatrix m(3, 6, value);
 
-    TEST_ASSERT(m.height() == 3);
-    TEST_ASSERT(m.width() == 6);
+    TEST_ASSERT_EQUALS(3, m.height());
+    TEST_ASSERT_EQUALS(6, m.width());
 
     for (int i = 0; i < 3; i++) {
        for (int j = 0; j < 6; j++) {
-         TEST_ASSERT(m.get(i, j) == value);
+         TEST_ASSERT_EQUALS(value, m.get(i, j));
        }
     }
 }
@@ -59,6 +60,40 @@ void RealMatrixTest::test_get() {
     TEST_THROWS(m.get(10, 10), std::out_of_range);
     TEST_THROWS(m.get(0, 10), std::out_of_range);
     TEST_THROWS(m.get(10, 0), std::out_of_range);
+}
+
+void RealMatrixTest::test_getPtr() {
+    RealMatrix m(3, 3);
+    double array[9] = {
+       1, 2, 3,
+       4, 5, 6,
+       7, 8, 9
+    };
+    m.fromArray(array);
+
+    TEST_THROWS(m.getPtr(3, 3), std::out_of_range);
+    TEST_THROWS(m.getPtr(0, 3), std::out_of_range);
+    TEST_THROWS(m.getPtr(3, 0), std::out_of_range);
+
+    RealMatrix expected(3, 3);
+    double exp_array[9] = {
+       1, 2, 3,
+       -1, 1, 2,
+       7, 8, 5
+    };
+    expected.fromArray(exp_array);
+
+    double* a = m.getPtr(1, 0);
+    double* b = m.getPtr(1, 1);
+    double* c = m.getPtr(1, 2);
+    double* d = m.getPtr(2, 2);
+
+    *a = -1;
+    *b = 1;
+    *c = 2;
+    *d = 5;
+
+    TEST_ASSERT_EQUALS(expected, m);
 }
 
 void RealMatrixTest::test_set() {

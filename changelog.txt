@@ -2,3 +2,7 @@ v0.1
 
 - Add Algebra::Matrix<T>
 - Add Algebra::RealMatrix
+
+v0.2
+
+- Add pointer access to Matrix values

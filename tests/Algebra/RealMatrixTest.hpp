@@ -22,6 +22,7 @@ private:
 	void test_sizeValueConstructor();
     void test_get();
 	void test_set();
+    void test_getPtr();
     void test_fromArray();
     void test_transpose();
     void test_determinant(); // TODO

@@ -55,6 +55,8 @@ public:
     const T& get(unsigned int i, unsigned int j) const;
     void set(unsigned int i, unsigned int j, const T& value);
 
+    T* getPtr(unsigned int i, unsigned int j);
+
     void fromArray(T array[]);
 
     unsigned int height() const;
