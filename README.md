@@ -8,4 +8,4 @@ Common maths library
 
 ## Unit tests
 
-`make runtests`
+`make runtest`

@@ -1,7 +1,6 @@
 CC=g++
-
-LIB_FLAGS=-w -std=gnu++11 -MMD
-TEST_FLAGS=
+CFLAGS=-w -std=gnu++11 -MMD
+LFLAGS=
 
 # Windows
 ifeq ($(OS),Windows_NT)
@@ -9,7 +8,7 @@ ifeq ($(OS),Windows_NT)
 	LIB=libSkeggibMaths.a
 	TEST=SkeggibMathsTests.exe
 
-	TEST_FLAGS+= -static-libgcc -static-libstdc++ -lmingw32
+	LFLAGS+= -static-libgcc -static-libstdc++ -lmingw32
 
 # Linux
 else
@@ -17,33 +16,20 @@ else
 	LIB=libSkeggibMaths.a
 	TEST=SkeggibMathsTests
 
-	TEST_FLAGS+=
-
 endif
 
 # Objects ---------------------------------------------------------------------
 
 O_LIB=\
-    src/Algebra/Matrix.o\
-
-O_CPPTEST=\
-	Skeggib.Cpptest/src/collectoroutput.o\
-	Skeggib.Cpptest/src/compileroutput.o\
-	Skeggib.Cpptest/src/htmloutput.o\
-	Skeggib.Cpptest/src/missing.o\
-	Skeggib.Cpptest/src/source.o\
-	Skeggib.Cpptest/src/suite.o\
-	Skeggib.Cpptest/src/textoutput.o\
-	Skeggib.Cpptest/src/time.o\
-	Skeggib.Cpptest/src/utils.o\
+	src/Algebra/RealMatrix.o\
 
 O_TEST=\
 	tests/tests.o\
-	tests/MatrixTests.o\
+	tests/Algebra/RealMatrixTest.o\
 
 O_ALL=\
 	$(O_LIB)\
-	$(O_CPPTEST)\
+	$(O_TEST)\
 
 # Compilation -----------------------------------------------------------------
 
@@ -60,8 +46,18 @@ O_ALL=\
 
 all: $(LIB)
 
+test: $(TEST)
+
+runtest: test
+	@./$(TEST)
+
 $(LIB): $(O_LIB)
 	ar rvs $@ $^
+
+$(O_TEST): $(LIB)
+
+$(TEST): $(O_TEST)
+	$(CC) $^ -o $@ -L./Skeggib.Cpptest -lSkeggibCpptest -L. -lSkeggibMaths $(LFLAGS)
 
 # Dependencies ----------------------------------------------------------------
 

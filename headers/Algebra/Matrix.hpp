@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <cstring>
 #include <stdexcept>
 #include <cmath>
 #include <sstream>
@@ -27,8 +28,6 @@ private:
     unsigned int _elements_count;
 
     T* _values;
-    T _null_element;
-    T _neutral_element;
 
     /**
      * @brief Allocate memory
@@ -40,26 +39,20 @@ private:
      */
     void allocate(int height, int width);
 
+protected:
+
+    virtual const T nullElement() const = 0;
+    virtual const T neutralElement() const = 0;
+
 public:
 
-    Matrix(int      height,
-           int      width,
-           const T& null_element,
-           const T& neutral_element);
-    
-    Matrix(int      height,
-           int      width,
-           const T& zero_value,
-           const T& neutral_element,
-           const T& default_value);
-    
+    Matrix(int height, int width);
+    Matrix(int height, int width, const T& default_value);
     Matrix(const Matrix& matrix);
 
     virtual ~Matrix();
 
     const T& get(unsigned int i, unsigned int j) const;
-          T& get(unsigned int i, unsigned int j);
-
     void set(unsigned int i, unsigned int j, const T& value);
 
     void fromArray(T array[]);
@@ -67,7 +60,7 @@ public:
     unsigned int height() const;
     unsigned int width() const;
 
-    Matrix<T> transpose() const;
+    void transpose();
 
     T determinant();
 
@@ -91,11 +84,6 @@ public:
     bool operator==(const Matrix<T>& other) const;
     bool operator!=(const Matrix<T>& other) const;
 
-    const Matrix<T> operator+(const Matrix<T>& rhs) const;
-    const Matrix<T> operator-(const Matrix<T>& rhs) const;
-    const Matrix<T> operator*(const Matrix<T>& rhs) const;
-    const Matrix<T> operator*(const T& scalar) const;
-
     Matrix<T>& operator+=(const Matrix<T>& rhs);
     Matrix<T>& operator-=(const Matrix<T>& rhs);
     Matrix<T>& operator*=(const Matrix<T>& rhs);
@@ -114,3 +102,5 @@ const Matrix<T> operator*(const T& scalar, const Matrix<T>& matrix);
 } // namespace Algebra
 } // namespace Maths
 } // namespace Skeggib
+
+#include "Matrix.tpp"

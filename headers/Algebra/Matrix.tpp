@@ -1,5 +1,3 @@
-#include "../../headers/Algebra/Matrix.hpp"
-
 namespace Skeggib {
 namespace Maths {
 namespace Algebra {
@@ -13,23 +11,17 @@ void Matrix<T>::allocate(int height, int width) {
 	_width = width;
     _elements_count = _height * _width;
 
-	_values = (T*)std::malloc(_height * _width * sizeof(T));
+	_values = (T*)std::malloc(_elements_count * sizeof(T));
 }
 
 template <class T>
-Matrix<T>::Matrix(int height, int width, const T& null_element, const T& neutral_element) {
+Matrix<T>::Matrix(int height, int width) {
 	allocate(height, width);
-
-    _null_element = null_element;
-    _neutral_element = neutral_element;
 }
 
 template <class T>
-Matrix<T>::Matrix(int height, int width, const T& null_element, const T& neutral_element, const T& default_value) {
+Matrix<T>::Matrix(int height, int width, const T& default_value) {
 	allocate(height, width);
-
-    _null_element = null_element;
-    _neutral_element = neutral_element;
 
     T* ptr = _values;
     for (int i = 0; i < _elements_count; i++) {
@@ -42,10 +34,12 @@ template <class T>
 Matrix<T>::Matrix(const Matrix<T>& matrix) {
     allocate(matrix._height, matrix._width);
 
-    for (int i = 0; i < _height; i++) {
-        for (int j = 0; j < _width; j++) {
-            _values[i*_width+j] = matrix._values[i*_width+j];
-        }
+    T* pThis = _values;
+    T* pOther = matrix._values;
+    for (int i = 0; i < _elements_count; i++) {
+        *pThis = *pOther;
+        pThis++;
+        pOther++;
     }
 }
 
@@ -55,50 +49,39 @@ Matrix<T>::~Matrix() {
         std::free(_values);
 }
 
-/* --- Methodes --- */
-
 template <class T>
 const T& Matrix<T>::get(unsigned int i, unsigned int j) const {
 	if (i > _height-1 || j > _width-1)
 		throw std::out_of_range("");
-
 	return _values[i*_width+j];
-}
-
-template <class T>
-T& Matrix<T>::get(unsigned int i, unsigned int j) {
-    if (i > _height-1 || j > _width-1)
-        throw std::out_of_range("");
-
-    return _values[i*_width+j];
 }
 
 template <class T>
 void Matrix<T>::set(unsigned int i, unsigned int j, const T& value) {
 	if (i > _height-1 || j > _width-1)
 		throw std::out_of_range("");
-
 	_values[i*_width+j] = value;
 }
 
 template <class T>
 void Matrix<T>::setLine(unsigned int i, T array[]) {
+    T* pThis = _values + _width * i;
+    T* pArray = array;
 	for (int j = 0; j < _width; j++) {
-		get(i, j) = array[j];
+		*pThis = *pArray;
+        pThis++;
+        pArray++;
 	}
 }
 
 template <class T>
 void Matrix<T>::fromArray(T array[]) {
-	int i = 0;
-	int j = 0;
-	int pos = 0;
-
-	for (i = 0; i < _height; i++) {
-		for (j = 0; j < _width; j++) {
-			pos = i*_width+j;
-			get(i, j) = array[pos];
-		}
+    T* pThis = _values;
+    T* pArray = array;
+	for (int i = 0; i < _elements_count; i++) {
+		*pThis = *pArray;
+        pThis++;
+        pArray++;
 	}
 }
 
@@ -113,12 +96,26 @@ unsigned int Matrix<T>::width() const {
 }
 
 template <class T>
-Matrix<T> Matrix<T>::transpose() const {
-    Matrix<T> t_matrix(_width, _height, _null_element);
-    for (int i = 0; i < _height; i++)
-        for (int j = 0; j < _width; j++)
-            t_matrix.get(j, i) = get(i, j);
-    return t_matrix;
+void Matrix<T>::transpose() {
+    T* copy = (T*)std::malloc(_elements_count * sizeof(T));
+    std::memcpy(copy, _values, _elements_count * sizeof(T));
+
+    int buffer = _height;
+    _height = _width;
+    _width = buffer;
+
+    T* pThis = _values;
+    T* pCopy = copy;
+    for (int i = 0; i < _height; i++) {
+        pCopy = copy + i;
+        for (int j = 0; j < _width; j++) {
+            *pThis = *pCopy;
+            pThis++;
+            pCopy += _height;
+        }
+    }
+
+    free(copy);
 }
 
 template <class T>
@@ -128,36 +125,47 @@ T Matrix<T>::determinant() {
 
 template <class T>
 void Matrix<T>::swapLines(unsigned int index1, unsigned int index2) {
-    T buffer;
-    int i;
+    if (index1 >= _height || index2 >= _height)
+        throw std::out_of_range("");
 
-    for (i = 0; i < _width; i++) {
-        buffer = _values[index1*_width+i];
-        _values[index1*_width+i] = _values[index2*_width+i];
-        _values[index2*_width+i] = buffer;
+    T* buffer;
+    T* p1 = _values + index1 * _width;
+    T* p2 = _values + index2 * _width;
+    for (int i = 0; i < _width; i++) {
+        *buffer = *p1;
+        *p1 = *p2;
+        *p2 = *buffer;
+        p1++;
+        p2++;
     }
 }
 
 template <class T>
 void Matrix<T>::multiplyLine(unsigned int index, float scalar) {
-    if (scalar == 0.0)
+    if (scalar == neutralElement())
         return;
-    for (int i = 0; i < _width; i++)
-        _values[index*_width+i] *= scalar;
+    T* ptr = _values;
+    for (int i = 0; i < _width; i++) {
+        *ptr *= scalar;
+        ptr++;
+    }
 }
 
 template <class T>
 void Matrix<T>::addLine(unsigned int index1, unsigned int index2, float x) {
-    if (x == 0.0)
+    if (x == nullElement())
         return;
     if (index1 == index2)
-        throw std::invalid_argument("");
+        throw std::invalid_argument("Cannot add a line to itself");
 
-    for (int i = 0; i < _width; i++)
-        _values[index1*_width+i] += _values[index2*_width+i] * x;
+    T* l1 = _values + index1 * _width;
+    T* l2 = _values + index2 * _width;
+    for (int i = 0; i < _width; i++) {
+        *l1 += *l2 * x;
+        l1++;
+        l2++;
+    }
 }
-
-/* --- Operators --- */
 
 template <class T>
 void Matrix<T>::product(const Matrix<T>& a, const Matrix<T>& b, Matrix<T>& result) {
@@ -236,15 +244,17 @@ void Matrix<T>::substraction(const Matrix<T>& a, const Matrix<T>& b, Matrix<T>& 
 template <class T>
 bool Matrix<T>::operator==(const Matrix<T>& other) const {
 	if (_height != other._height)
-        throw std::length_error("");
+        return false;
     if (_width != other._width)
-        throw std::length_error("");
+        return false;
 
-    for (int i = 0; i < _height; i++) {
-        for (int j = 0; j < _width; j++) {
-            if (std::fabs(get(i, j) - other.get(i, j)) > EPSILON)
-                return false;
-        }
+    T* pThis = _values;
+    T* pOther = other._values;
+    for (int i = 0; i < _elements_count; i++) {
+        if (std::fabs(*pThis - *pOther) > EPSILON)
+            return false;
+        pThis++;
+        pOther++;
     }
 
     return true;
@@ -258,77 +268,82 @@ bool Matrix<T>::operator!=(const Matrix<T>& other) const {
 template <class T>
 Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& rhs) {
     if (_width != rhs._width || _height != rhs._height)
-        throw std::length_error("");
+        throw std::length_error("Addition require two matrices with the same \
+dimensions");
 
-    for (int i = 0; i < _height; i++) {
-        for (int j = 0; j < _width; j++) {
-            get(i, j) += rhs.get(i, j);
-        }
+    T* pThis = _values;
+    T* pRhs = rhs._values;
+    for (int i = 0; i < _elements_count; i++) {
+        *pThis += *pRhs;
+        pThis++;
+        pRhs++;
     }
+
+    return *this;
 }
 
 template <class T>
 Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& rhs) {
     if (_width != rhs._width || _height != rhs._height)
-        throw std::length_error("Cannot substract different size matrix");
+        throw std::length_error("substraction require two matrices with the \
+same dimensions");
 
-    for (int i = 0; i < _height; i++) {
-        for (int j = 0; j < _width; j++) {
-            get(i, j) -= rhs.get(i, j);
-        }
+    T* pThis = _values;
+    T* pRhs = rhs._values;
+    for (int i = 0; i < _elements_count; i++) {
+        *pThis -= *pRhs;
+        pThis++;
+        pRhs++;
     }
+
+    return *this;
 }
 
 template <class T>
-Matrix<T>& Matrix<T>::operator*=(const T& scalar) {    
-    for (int i = 0; i < _height; i++) {
-        for (int j = 0; j < _width; j++) {
-            get(i, j) *= scalar;
-        }
+Matrix<T>& Matrix<T>::operator*=(const T& scalar) {
+    if (scalar == neutralElement())
+        return *this;
+
+    T* ptr = _values;
+    for (int i = 0; i < _elements_count; i++) {
+        *ptr *= scalar;
+        ptr++;
     }
+
+    return *this;
 }
 
 template <class T>
 Matrix<T>& Matrix<T>::operator*=(const Matrix<T>& rhs) {
-    *this = *this * rhs; // TODO optimize
-}
+    if (_width != rhs._height)
+        throw std::length_error("Incompatible dimensions for product");
 
-template <class T>
-const Matrix<T> Matrix<T>::operator+(const Matrix<T>& other) const {
-    Matrix<T> result = *this;
-    result += other;
-    return result;
-}
+    T* copy = (T*)std::malloc(_elements_count * sizeof(T));
+    std::memcpy(copy, _values, _elements_count * sizeof(T));
 
-template <class T>
-const Matrix<T> Matrix<T>::operator-(const Matrix<T>& other) const {
-    Matrix<T> result = *this;
-    result -= other;
-    return result;
-}
+    free(_values);
+    allocate(_height, rhs._width);
 
-template <class T>
-const Matrix<T> Matrix<T>::operator*(const Matrix<T>& other) const {
-    if (_width != other._height)
-        throw std::length_error("A.width must be equal to B.height");
-
-    Matrix<T> result(_height, other._width, _null_element, _null_element);
-
-    for (int i = 0; i < result._height; i++) {
-        for (int j = 0; j < result._width; j++) {
-            for (int k = 0; k < _width; k++)
-                result.get(i, j) += get(i, k) * other.get(k, j);
+    T* pThis = _values;
+    T* pCopy = copy;
+    T* pRhs = rhs._values;
+    for (int i = 0; i < _height; i++) {
+        for (int j = 0; j < _width; j++) {
+            pCopy = copy + rhs._height * i;
+            pRhs = rhs._values + j;
+            *pThis = nullElement();
+            for (int k = 0; k < rhs._height; k++) {
+                *pThis += *pCopy * *pRhs;
+                pCopy++;
+                pRhs += _width;
+            }
+            pThis++;
         }
     }
 
-    return result;
-}
+    free(copy);
 
-template <class T>
-const Matrix<T> Matrix<T>::operator*(const T& scalar) const {
-    Matrix<T> result = *this;
-    result *= scalar;
-    return result;
+    return *this;
 }
 
 template <class T>
@@ -336,11 +351,15 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other) {
     if (other._width != _width || other._height != _height)
         throw std::length_error("Cannot assign matrix with different size");
     
-    for (int i = 0; i < _height; i++) {
-        for (int j = 0; j < _width; j++) {
-            _values[i*_width+j] = other._values[i*_width+j];
-        }
+    T* pThis = _values;
+    T* pOther = other._values;
+    for (int i = 0; i < _elements_count; i++) {
+        *pThis = *pOther;
+        pThis++;
+        pOther++;
     }
+
+    return *this;
 }
 
 template <class T>
